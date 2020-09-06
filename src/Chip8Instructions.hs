@@ -207,4 +207,4 @@ instrJMPA a c = instrJmp addr c
 instrRND :: Register -> Byte -> Chip8 -> Maybe Chip8
 instrRND x v c = incpc <$> setVReg x vx' c
   where vx  = getVReg x c
-        vx' = fromIntegral $ vx .&. v
+        vx' = fromIntegral $ 0x42 .&. v
