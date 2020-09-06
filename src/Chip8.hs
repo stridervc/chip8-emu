@@ -48,19 +48,19 @@ chip8 = Chip8
   }
 
 -- get V register value
-getVReg :: Chip8 -> Register -> Byte
-getVReg c r = (vregs c)!!r'
+getVReg :: Register -> Chip8 -> Byte
+getVReg r c = (vregs c)!!r'
   where r'  = fromEnum r
 
-setVReg :: Chip8 -> Register -> Byte -> Maybe Chip8
-setVReg c r v = return c { vregs = vregs' }
+setVReg :: Register -> Byte -> Chip8 -> Maybe Chip8
+setVReg r v c = return c { vregs = vregs' }
   where vregs'  = take r' regs ++ [v] ++ drop (r'+1) regs
         regs    = vregs c
         r'      = fromIntegral r
 
 -- push an address onto the stack
-push :: Chip8 -> Address -> Chip8
-push c a = c { stack = a : stack c }
+push :: Address -> Chip8 -> Chip8
+push a c = c { stack = a : stack c }
 
 -- pop address from stack
 pop :: Chip8 -> Maybe (Chip8, Address)
