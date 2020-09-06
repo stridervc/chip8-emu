@@ -22,6 +22,7 @@ instr opcode c
   | hinib == 0xa  = instrLDI  nnn c
   | hinib == 0xb  = instrJMPA nnn c
   | hinib == 0xc  = instrRND  x kk c
+  | hinib == 0xd  = instrDRW  x y n c
   | hinib == 8    = case lonib of
     0   -> instrLdR   x y c
     1   -> instrOr    x y c
@@ -35,6 +36,7 @@ instr opcode c
   where hinib   = opcode `shiftR` 12
         lonib   = opcode .&. 0x000f
         nnn     = opcode .&. 0x0fff
+        n       = fromIntegral $ opcode .&. 0x000f
         x       = fromIntegral $ (opcode .&. 0x0f00) `shiftR` 8
         y       = fromIntegral $ (opcode .&. 0x00f0) `shiftR` 4
         kk      = fromIntegral $ opcode .&. 0x00ff
@@ -210,15 +212,15 @@ instrRND x v c = incpc <$> setVReg x vx' c
   where vx  = getVReg x c
         vx' = fromIntegral $ 0x42 .&. v
 
-{-
+-- f :: Chip8 -> (y,b) -> Chip8
 -- returns true if collision
 xorPutScreenBytes :: Byte -> Byte -> [Byte] -> Chip8 -> (Chip8,Bool)
-xorPutScreenBytes _ _ [] c = (c, False)
-xorPutScreenBytes x y [b:bs] c =
-  if collision then (c'',True) else (c'',w'')
-  where (c',w)    = xorPutScreen x y b c
-        (c'',w'') = xorPutScreenBytes x (y+1) bs c'
-        collision = w /= b
+xorPutScreenBytes x y bs c = (c', collision)
+  where c'        = foldl f c ybs
+        ys        = map (+y) [0..7]
+        ybs       = zip ys bs
+        f         = (\c (y,b) -> xorPutScreenByte x y b c)
+        collision = any id $ map (\(y,b) -> willCollide x y b c) ybs
 
 -- Dxyn Draw Vx, Vy, n
 -- Display n-byte sprite from memory location I at
@@ -229,8 +231,8 @@ instrDRW x y n c = incpc <$> setVReg 15 vf c'
   where vx              = getVReg x c
         vy              = getVReg y c
         i               = ireg c
-        spr             = getMemory i n c
-        (c',collision)  = xorPutScreenBytes x y spr c
+        n'              = fromIntegral n
+        sprite          = getMemory i n' c
+        (c',collision)  = xorPutScreenBytes vx vy sprite c
         vf              = if collision then 1 else 0
 
-        -}

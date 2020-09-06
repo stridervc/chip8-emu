@@ -13,6 +13,8 @@ module Chip8
   , setMemory
   , getScreen
   , xorPutScreen
+  , xorPutScreenByte
+  , willCollide
   ) where
 
 import Nibble
@@ -95,9 +97,8 @@ getScreen x y c = (screen c)!!offs
   where w     = fst $ screensize c
         offs  = fromIntegral $ y*w+x
 
--- returns xor'ed value now at x,y
-xorPutScreen :: Byte -> Byte -> Bool -> Chip8 -> (Chip8,Bool)
-xorPutScreen x y v c = (c { screen = scr'' }, v')
+xorPutScreen :: Byte -> Byte -> Bool -> Chip8 -> Chip8
+xorPutScreen x y v c = c { screen = scr'' }
   where i     = fromIntegral $ y*w+x
         w     = fst $ screensize c
         scr   = screen c
@@ -105,6 +106,23 @@ xorPutScreen x y v c = (c { screen = scr'' }, v')
         scr'' = take i scr ++ [v'] ++ scr'
         old   = getScreen x y c
         v'    = old `xor` v
+
+-- f :: Chip8 -> (x,v) -> Chip8
+-- returns true if collision
+xorPutScreenByte :: Byte -> Byte -> Byte -> Chip8 -> Chip8
+xorPutScreenByte x y b c = c'
+  where bits      = map (testBit b) [7,6..0]
+        xs        = map (+x) [0..7]
+        xvs       = zip xs bits
+        f         = (\c (x,v) -> xorPutScreen x y v c)
+        c'        = foldl f c xvs
+
+willCollide :: Byte -> Byte -> Byte -> Chip8 -> Bool
+willCollide x y b c = any id $ map (\(a,b) -> a == b) oldnewbits
+  where oldnewbits  = zip oldbits newbits
+        oldbits     = map (\x -> getScreen x y c) xs
+        xs          = map (+x) [0..7]
+        newbits     = map (testBit b) [7,6..0]
 
 -- the standard chip-8 font starting at 0x000 of memory
 chip8font :: [Byte]
