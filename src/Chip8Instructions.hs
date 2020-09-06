@@ -3,6 +3,7 @@ module Chip8Instructions
   ) where
 
 import Chip8
+import Nibble
 import Data.Bits
 
 -- apply an opcode to Chip8
@@ -49,8 +50,8 @@ incpc c = c { pc = pc c + 2 }
 instrCls :: Chip8 -> Maybe Chip8
 instrCls c = return $ incpc $
   c { screen = take (w*h) $ repeat False }
-  where w = fst $ screensize c
-        h = snd $ screensize c
+  where w = fromIntegral $ fst $ screensize c
+        h = fromIntegral $ snd $ screensize c
 
 -- 00EE return
 instrRet :: Chip8 -> Maybe Chip8
@@ -208,3 +209,28 @@ instrRND :: Register -> Byte -> Chip8 -> Maybe Chip8
 instrRND x v c = incpc <$> setVReg x vx' c
   where vx  = getVReg x c
         vx' = fromIntegral $ 0x42 .&. v
+
+{-
+-- returns true if collision
+xorPutScreenBytes :: Byte -> Byte -> [Byte] -> Chip8 -> (Chip8,Bool)
+xorPutScreenBytes _ _ [] c = (c, False)
+xorPutScreenBytes x y [b:bs] c =
+  if collision then (c'',True) else (c'',w'')
+  where (c',w)    = xorPutScreen x y b c
+        (c'',w'') = xorPutScreenBytes x (y+1) bs c'
+        collision = w /= b
+
+-- Dxyn Draw Vx, Vy, n
+-- Display n-byte sprite from memory location I at
+-- (Vx, Vy) on screen
+-- VF is set on collision
+instrDRW :: Register -> Register -> Nibble -> Chip8 -> Maybe Chip8
+instrDRW x y n c = incpc <$> setVReg 15 vf c'
+  where vx              = getVReg x c
+        vy              = getVReg y c
+        i               = ireg c
+        spr             = getMemory i n c
+        (c',collision)  = xorPutScreenBytes x y spr c
+        vf              = if collision then 1 else 0
+
+        -}
