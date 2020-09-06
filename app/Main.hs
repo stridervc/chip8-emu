@@ -11,6 +11,6 @@ main = do
   putStrLn ""
 
   let Just c = instr 0x6010 chip8 >>= instr 0x61ef >>= instr 0x8014
-  putStrLn $ show $ getVReg 0 c
-  putStrLn $ show $ getVReg 1 c
-  putStrLn $ show $ getVReg 15 c
+  putStrLn $ "V0 = " ++ (show $ getVReg 0 c)
+  putStrLn $ "Vf = " ++ (show $ getVReg 1 c)
+  putStrLn $ show $ vregs c
