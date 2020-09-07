@@ -24,15 +24,19 @@ instr opcode c
   | hinib == 0xc  = instrRND  x kk c
   | hinib == 0xd  = instrDRW  x y n c
   | hinib == 8    = case lonib of
-    0   -> instrLdR   x y c
-    1   -> instrOr    x y c
-    2   -> instrAnd   x y c
-    3   -> instrXor   x y c
-    4   -> instrAddR  x y c
-    5   -> instrSubR  x y c
-    6   -> instrShr   x y c
-    7   -> instrSubn  x y c
-    0xe -> instrShl   x y c
+    0     -> instrLdR   x y c
+    1     -> instrOr    x y c
+    2     -> instrAnd   x y c
+    3     -> instrXor   x y c
+    4     -> instrAddR  x y c
+    5     -> instrSubR  x y c
+    6     -> instrShr   x y c
+    7     -> instrSubn  x y c
+    0xe   -> instrShl   x y c
+  | hinib == 0xE  = case lobyte of
+    0x9E  -> instrSKP   x c
+    0xA1  -> instrSKNP  x c
+
   where hinib   = opcode `shiftR` 12
         lonib   = opcode .&. 0x000f
         nnn     = opcode .&. 0x0fff
@@ -40,6 +44,7 @@ instr opcode c
         x       = fromIntegral $ (opcode .&. 0x0f00) `shiftR` 8
         y       = fromIntegral $ (opcode .&. 0x00f0) `shiftR` 4
         kk      = fromIntegral $ opcode .&. 0x00ff
+        lobyte  = kk
 instr _ _       = Nothing
 
 -- increment program counter
@@ -235,4 +240,24 @@ instrDRW x y n c = incpc <$> setVReg 15 vf c'
         sprite          = getMemory i n' c
         (c',collision)  = xorPutScreenBytes vx vy sprite c
         vf              = if collision then 1 else 0
+
+-- Ex9E SKP Vx
+-- Skip next instruction if key with value of Vx is pressed.
+instrSKP :: Register -> Chip8 -> Maybe Chip8
+instrSKP x c
+  | pressed   = return $ incpc $ incpc c
+  | otherwise = return $ incpc c
+  where pressed = (keys c)!!vx'
+        vx      = getVReg x c
+        vx'     = fromIntegral vx
+
+-- ExA1 SKP Vx
+-- Skip next instruction if key with value of Vx is not pressed.
+instrSKNP :: Register -> Chip8 -> Maybe Chip8
+instrSKNP x c
+  | pressed   = return $ incpc c
+  | otherwise = return $ incpc $ incpc c
+  where pressed = (keys c)!!vx'
+        vx      = getVReg x c
+        vx'     = fromIntegral vx
 
