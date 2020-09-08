@@ -5,6 +5,8 @@ module Chip8Instructions
 import Chip8
 import Nibble
 import Data.Bits
+import Data.List
+import Data.Foldable (foldlM)
 
 -- apply an opcode to Chip8
 instr :: Instruction -> Chip8 -> Maybe Chip8
@@ -36,7 +38,16 @@ instr opcode c
   | hinib == 0xE  = case lobyte of
     0x9E  -> instrSKP   x c
     0xA1  -> instrSKNP  x c
-
+  | hinib == 0xF  = case lobyte of
+    0x07  -> instrLDxDT x c
+    0x0A  -> instrLDxK  x c
+    0x15  -> instrLDDTx x c
+    0x18  -> instrLDSTx x c
+    0x1E  -> instrADDIx x c
+    0x29  -> instrLDFx  x c
+    0x33  -> instrLDBx  x c
+    0x55  -> instrLDIx  x c
+    0x65  -> instrLDxI  x c
   where hinib   = opcode `shiftR` 12
         lonib   = opcode .&. 0x000f
         nnn     = opcode .&. 0x0fff
@@ -260,4 +271,75 @@ instrSKNP x c
   where pressed = (keys c)!!vx'
         vx      = getVReg x c
         vx'     = fromIntegral vx
+
+-- Fx07 LD Vx, DT
+-- Vx = DT
+instrLDxDT :: Register -> Chip8 -> Maybe Chip8
+instrLDxDT x c = incpc <$> setVReg x (dt c) c
+
+-- Fx0A LD Vx, K
+-- Wait for keypress, store in Vx
+-- wait by not incr pc, so this instruction will just get called
+-- by tick until a key is pressed
+instrLDxK :: Register -> Chip8 -> Maybe Chip8
+instrLDxK x c
+  | pressed   = incpc <$> setVReg x k c
+  | otherwise = return c
+  where pressed = any id $ keys c
+        Just k' = elemIndex True $ keys c
+        k       = toEnum k'
+
+-- Fx15 LD DT, Vx
+-- DT = Vx
+instrLDDTx :: Register -> Chip8 -> Maybe Chip8
+instrLDDTx x c = return $ incpc c { dt = getVReg x c }
+
+-- Fx18 LD ST, Vx
+-- ST = Vx
+instrLDSTx :: Register -> Chip8 -> Maybe Chip8
+instrLDSTx x c = return $ incpc c { st = getVReg x c }
+
+-- Fx1E ADD I, Vx
+-- I = I + Vx
+instrADDIx :: Register -> Chip8 -> Maybe Chip8
+instrADDIx x c = return $ incpc c { ireg = i' }
+  where i'  = ireg c + (fromIntegral $ getVReg x c)
+
+-- Fx29 LD F, Vx
+-- I = location of font for digit Vx
+instrLDFx :: Register -> Chip8 -> Maybe Chip8
+instrLDFx x c = return $ incpc $ c { ireg = vx*5 }
+  where vx  = fromIntegral $ getVReg x c
+
+-- Fx33 LD B, Vx
+-- Store BCD representation of Vx in memory locations I, I+1, I+2
+-- Hundreds digit in I, tens in I+1, ones in I+2
+instrLDBx :: Register -> Chip8 -> Maybe Chip8
+instrLDBx x c = return $ incpc $ setMemory i mem c
+  where vx        = getVReg x c
+        hundreds  = vx `div` 100
+        tens      = (vx - hundreds * 100) `div` 10
+        ones      = (vx - hundreds * 100 - tens * 10)
+        i         = ireg c
+        mem       = [hundreds, tens, ones]
+
+-- Fx55 LD [I], Vx
+-- Store registers V0 through Vx in memory starting at I
+instrLDIx :: Register -> Chip8 -> Maybe Chip8
+instrLDIx x c = return $ incpc $ setMemory i values c
+  where vx      = getVReg x c
+        vx'     = fromIntegral vx
+        values  = map (flip getVReg c) $ take vx' $ [0..]
+        i       = ireg c
+
+-- Fx65 LD Vx, [I]
+-- Read registers V0 through Vx from memory starting at I
+-- setreg :: Chip8 -> (r,v) -> Maybe Chip8
+instrLDxI :: Register -> Chip8 -> Maybe Chip8
+instrLDxI x c = incpc <$> foldlM setreg c regsvals
+  where vx        = getVReg x c
+        values    = getMemory i vx c
+        regsvals  = zip [0..] values
+        i         = ireg c
+        setreg    = (\c (r,v) -> setVReg r v c)
 
