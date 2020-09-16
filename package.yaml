@@ -24,8 +24,10 @@ dependencies:
 
 library:
   source-dirs: src
-#  dependencies:
-#  - text
+  dependencies:
+  - sdl2
+  - sdl2-ttf
+  - mortar
 
 executables:
   chip8-emu:
@@ -37,7 +39,9 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - chip8-emu
-#   - text
+    - mortar
+    - sdl2
+    - sdl2-ttf
 
 tests:
   chip8-emu-test:

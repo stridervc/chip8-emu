@@ -1,16 +1,26 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import Chip8
 import Chip8Instructions
+import AppState
+import App
+
+import SDL
+import qualified SDL.Font as F
+import Mortar
 
 main :: IO ()
 main = do
-  putStrLn $ "V0 = " ++ (show $ getVReg 0 chip8)
-  putStrLn $ "Vf = " ++ (show $ getVReg 15 chip8)
-  putStrLn $ show $ vregs chip8
-  putStrLn ""
+  initializeAll
+  F.initialize
 
-  let Just c = instr 0x6007 chip8 >>= instr 0x6102 >>= instr 0x8014
-  putStrLn $ "V0 = " ++ (show $ getVReg 0 c)
-  putStrLn $ "Vf = " ++ (show $ getVReg 1 c)
-  putStrLn $ show $ vregs c
+  font <- F.load "/usr/share/fonts/truetype/roboto/slab/RobotoSlab-Regular.ttf" 16
+
+  window <- createWindow "Chip-8" defaultWindow { windowResizable = True }
+  renderer <- createRenderer window (-1) defaultRenderer
+  appLoop (app font) renderer
+
+  F.free font
+  F.quit

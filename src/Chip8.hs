@@ -4,7 +4,7 @@ module Chip8
   , Address
   , Instruction
   , Register
-  , chip8
+  , defaultChip8
   , push
   , pop
   , getVReg
@@ -40,8 +40,8 @@ data Chip8 = Chip8
   } deriving (Eq, Show)
 
 -- default initialised chip-x
-chip8 :: Chip8
-chip8 = Chip8
+defaultChip8 :: Chip8
+defaultChip8 = Chip8
   { memory      = chip8font ++ repeat 0
   , vregs       = take 16 $ repeat 0
   , ireg        = 0

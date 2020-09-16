@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 75376627f43e1d9e6fbe81b76b69887219229afa858f7075fac54a4e1fe1cdcd
+-- hash: 72901c4ace2bef11e65f4777f929a85f749f38c48974dc823cfc410a166c8047
 
 name:           chip8-emu
 version:        0.1.0.0
@@ -27,6 +27,8 @@ source-repository head
 
 library
   exposed-modules:
+      App
+      AppState
       Chip8
       Chip8Instructions
       Lib
@@ -37,6 +39,9 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , mortar
+    , sdl2
+    , sdl2-ttf
   default-language: Haskell2010
 
 executable chip8-emu
@@ -49,6 +54,9 @@ executable chip8-emu
   build-depends:
       base >=4.7 && <5
     , chip8-emu
+    , mortar
+    , sdl2
+    , sdl2-ttf
   default-language: Haskell2010
 
 test-suite chip8-emu-test
