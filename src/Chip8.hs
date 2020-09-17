@@ -5,6 +5,7 @@ module Chip8
   , Instruction
   , Register
   , defaultChip8
+  , testChip8
   , push
   , pop
   , getVReg
@@ -53,6 +54,9 @@ defaultChip8 = Chip8
   , screen      = take (64*32) $ repeat False
   , pc          = 0x200
   }
+
+testChip8 :: Chip8
+testChip8 = defaultChip8 { screen = take (64*32) $ cycle [True,False] }
 
 -- push an address onto the stack
 push :: Address -> Chip8 -> Chip8

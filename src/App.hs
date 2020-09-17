@@ -6,6 +6,7 @@ module App
   ) where
 
 import AppState
+import Chip8DisplayWidget
 
 import Mortar
 import SDL
@@ -24,7 +25,7 @@ app f = App { appWidgets        = c8Widgets
             }
 
 c8Widgets :: AppState -> [Drawable]
-c8Widgets s = [label (appfont s) (V4 255 255 255 0) (V4 0 0 0 0) "Coming soon ..."]
+c8Widgets s = [c8Display 8 (V4 255 255 255 0) (chip8 s)]
 
 c8Events :: App AppState -> [Event] -> IO (App AppState)
 c8Events a []     = return a

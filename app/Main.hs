@@ -20,6 +20,7 @@ main = do
 
   window <- createWindow "Chip-8" defaultWindow { windowResizable = True }
   renderer <- createRenderer window (-1) defaultRenderer
+
   appLoop (app font) renderer
 
   F.free font
