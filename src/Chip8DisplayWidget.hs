@@ -12,10 +12,11 @@ type PixelSize = CInt
 
 c8Display :: PixelSize -> Color -> Chip8 -> Drawable
 c8Display s color c8 = widget (width,Fixed) (height,Fixed) r
-  where c8w     = fst $ screensize c8
-        c8h     = snd $ screensize c8
-        width   = return $ fromIntegral $ c8w * fromIntegral s
-        height  = return $ fromIntegral $ c8h * fromIntegral s
+  where c8w     = fromIntegral $ fst $ screensize c8
+        c8h     = fromIntegral $ snd $ screensize c8
+        s'      = fromIntegral s
+        width   = return $ c8w * s'
+        height  = return $ c8h * s'
         r       = drawDisplay s color c8
 
 drawPixel :: Renderer -> PixelSize -> ((CInt,CInt),Bool) -> IO ()
@@ -28,6 +29,10 @@ drawDisplay s color c8 r = do
   viewport <- get $ rendererViewport r
   case viewport of
     Just (Rectangle _ (V2 w h)) -> do
+      let rect = Just $ Rectangle (P (V2 0 0)) (V2 w h)
+      rendererDrawColor r $= V4 0 100 0 0
+      fillRect r rect
+
       rendererDrawColor r $= color
       mapM_ (drawPixel r s) xysp
   where xys   = [(x,y) | y <- take h [0..], x <- take w [0..]]

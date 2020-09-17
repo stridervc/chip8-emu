@@ -13,7 +13,7 @@ data AppState = AppState
   }
 
 defaultAppState :: F.Font -> AppState
-defaultAppState f = AppState  { chip8   = testChip8
+defaultAppState f = AppState  { chip8   = defaultChip8
                               , appfont = f
                               }
 
