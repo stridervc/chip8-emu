@@ -56,7 +56,8 @@ defaultChip8 = Chip8
   }
 
 testChip8 :: Chip8
-testChip8 = defaultChip8 { screen = take (64*32) $ cycle [True,False] }
+testChip8 = defaultChip8 { screen = take (64*32) pattern }
+  where pattern = cycle $ (take 64 $ cycle [True,False]) ++ (take 64 $ cycle [False,True])
 
 -- push an address onto the stack
 push :: Address -> Chip8 -> Chip8
