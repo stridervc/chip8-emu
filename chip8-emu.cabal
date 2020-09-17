@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4d9e976f7f824a6d26c18e79b4305f89891b06e272da2b3c7730fe8d036841ad
+-- hash: 1353dc98002802b758f60eb6de0052923acbb3bdd7ac32f733b92a11afdaa0b7
 
 name:           chip8-emu
 version:        0.1.0.0
@@ -31,7 +31,6 @@ library
       AppState
       Chip8
       Chip8DisplayWidget
-      Chip8Instructions
       Lib
       Nibble
   other-modules:
@@ -40,9 +39,11 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , bytestring
     , mortar
     , sdl2
     , sdl2-ttf
+    , text
   default-language: Haskell2010
 
 executable chip8-emu

@@ -3,7 +3,6 @@
 module Main where
 
 import Chip8
-import Chip8Instructions
 import AppState
 import App
 
@@ -21,7 +20,8 @@ main = do
   window <- createWindow "Chip-8" defaultWindow { windowResizable = True }
   renderer <- createRenderer window (-1) defaultRenderer
 
-  appLoop (app font) renderer
+  c8 <- loadRomFile "roms/test_opcode.ch8"
+  appLoop (appC8 font c8) renderer
 
   F.free font
   F.quit

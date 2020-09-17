@@ -28,6 +28,8 @@ library:
   - sdl2
   - sdl2-ttf
   - mortar
+  - bytestring
+  - text
 
 executables:
   chip8-emu:

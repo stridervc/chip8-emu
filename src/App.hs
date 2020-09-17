@@ -2,10 +2,12 @@
 
 module App
   ( app
+  , appC8
   , appLoop
   ) where
 
 import AppState
+import Chip8
 import Chip8DisplayWidget
 
 import Mortar
@@ -14,6 +16,7 @@ import qualified SDL.Font as F
 import Control.Monad (unless)
 import Control.Concurrent (threadDelay)
 import Foreign.C.Types (CInt(..))
+import Data.Text as T
 
 app :: F.Font -> App AppState
 app f = App { appWidgets        = c8Widgets
@@ -24,8 +27,17 @@ app f = App { appWidgets        = c8Widgets
             , state             = defaultAppState f
             }
 
+appC8 :: F.Font -> Chip8 -> App AppState
+appC8 f c = (app f) { state = chip8AppState f c }
+
 c8Widgets :: AppState -> [Drawable]
-c8Widgets s = [c8Display 8 (V4 255 255 255 0) (chip8 s)]
+c8Widgets s = [display]
+  where display = c8Display 8 (V4 255 255 255 0) (chip8 s)
+        pcreg   = label (appfont s) fg bg pct
+        fg      = (V4 255 255 255 0)
+        bg      = (V4 0 0 0 0)
+        pct     = T.pack $ "PC = " ++ pcv
+        pcv     = show $ pc $ chip8 s
 
 c8Events :: App AppState -> [Event] -> IO (App AppState)
 c8Events a []     = return a
@@ -49,6 +61,19 @@ c8EventPayload a (WindowClosedEvent d) = do
 
 c8EventPayload a (KeyboardEvent d) = do
   if (keyboardEventKeyMotion d == Pressed && keysymKeycode (keyboardEventKeysym d) == KeycodeQ) then return a { appQuit = True } else return a
+
+-- testing ticks
+-- TODO : remove
+c8EventPayload a _ = do
+  putStrLn "DBG: Here"
+  case chip8tick c8 of
+    Nothing   -> do
+      putStrLn "DBG: Nothing"
+      return a
+    Just c8'  -> do
+      let state'  = (state a) { chip8 = c8' }
+      return $ a { state = state' }
+  where c8  = chip8 $ state a
 
 c8EventPayload a _ = return a
 
