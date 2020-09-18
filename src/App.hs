@@ -33,7 +33,7 @@ appC8 :: F.Font -> Chip8 -> App AppState
 appC8 f c = (app f) { state = chip8AppState f c }
 
 c8Widgets :: AppState -> [Drawable]
-c8Widgets s = [display <=> (c8regs <+> hFill <+> c8instr)]
+c8Widgets s = [display <=> (c8regs <+> hFill <+> c8instr <+> hFill)]
   where display = c8Display 8 (V4 0 255 0 0) c8
         c8      = chip8 s
         font    = appfont s
