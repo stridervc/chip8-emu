@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1353dc98002802b758f60eb6de0052923acbb3bdd7ac32f733b92a11afdaa0b7
+-- hash: 0b723896810043a2941f203273cb3dd6f60e44edfff7504a8d6f032f3c397d3b
 
 name:           chip8-emu
 version:        0.1.0.0
@@ -31,6 +31,7 @@ library
       AppState
       Chip8
       Chip8DisplayWidget
+      Chip8RegistersWidget
       Lib
       Nibble
   other-modules:

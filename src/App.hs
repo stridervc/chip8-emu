@@ -9,6 +9,7 @@ module App
 import AppState
 import Chip8
 import Chip8DisplayWidget
+import Chip8RegistersWidget
 
 import Mortar
 import SDL
@@ -31,13 +32,13 @@ appC8 :: F.Font -> Chip8 -> App AppState
 appC8 f c = (app f) { state = chip8AppState f c }
 
 c8Widgets :: AppState -> [Drawable]
-c8Widgets s = [display <=> pcreg]
-  where display = c8Display 8 (V4 0 255 0 0) (chip8 s)
-        pcreg   = label (appfont s) fg bg pct
+c8Widgets s = [display <=> c8regs]
+  where display = c8Display 8 (V4 0 255 0 0) c8
+        c8      = chip8 s
+        font    = appfont s
         fg      = (V4 255 255 255 0)
         bg      = (V4 0 0 0 0)
-        pct     = T.pack $ "PC = " ++ pcv
-        pcv     = show $ pc $ chip8 s
+        c8regs  = c8Registers font fg c8
 
 c8Events :: App AppState -> [Event] -> IO (App AppState)
 c8Events a []     = return a
