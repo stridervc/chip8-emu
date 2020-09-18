@@ -60,20 +60,19 @@ c8EventPayload a (WindowClosedEvent d) = do
   return a { appQuit = True }
 
 c8EventPayload a (KeyboardEvent d) = do
-  if (keyboardEventKeyMotion d == Pressed && keysymKeycode (keyboardEventKeysym d) == KeycodeQ) then return a { appQuit = True } else return a
-
--- testing ticks
--- TODO : remove
-c8EventPayload a _ = do
-  putStrLn "DBG: Here"
-  case chip8tick c8 of
-    Nothing   -> do
-      putStrLn "DBG: Nothing"
-      return a
-    Just c8'  -> do
-      let state'  = (state a) { chip8 = c8' }
-      return $ a { state = state' }
-  where c8  = chip8 $ state a
+  case keyboardEventKeyMotion d of
+    Pressed -> case keysymKeycode (keyboardEventKeysym d) of
+      KeycodeQ -> return a { appQuit = True }
+      KeycodeS -> do
+        case chip8tick c of
+          Just c' -> do
+            let s' = s { chip8 = c' }
+            return $ a { state = s' }
+          Nothing -> return a
+      otherwise -> return a
+    otherwise -> return a
+  where c = chip8 s
+        s = state a
 
 c8EventPayload a _ = return a
 
