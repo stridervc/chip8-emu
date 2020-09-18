@@ -502,9 +502,8 @@ instrLDBx x c = return $ incpc $ setMemory i mem c
 -- Store registers V0 through Vx in memory starting at I
 instrLDIx :: Register -> Chip8 -> Maybe Chip8
 instrLDIx x c = return $ incpc $ setMemory i values c
-  where vx      = getVReg x c
-        vx'     = fromIntegral vx
-        values  = map (flip getVReg c) $ take vx' $ [0..]
+  where x'      = fromIntegral x
+        values  = map (flip getVReg c) $ take (x'+1) $ [0..]
         i       = ireg c
 
 -- Fx65 LD Vx, [I]
@@ -512,8 +511,8 @@ instrLDIx x c = return $ incpc $ setMemory i values c
 -- setreg :: Chip8 -> (r,v) -> Maybe Chip8
 instrLDxI :: Register -> Chip8 -> Maybe Chip8
 instrLDxI x c = incpc <$> foldlM setreg c regsvals
-  where vx        = getVReg x c
-        values    = getMemory i vx c
+  where x'        = fromIntegral x
+        values    = getMemory i (x'+1) c
         regsvals  = zip [0..] values
         i         = ireg c
         setreg    = (\c (r,v) -> setVReg r v c)
