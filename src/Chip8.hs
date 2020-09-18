@@ -256,7 +256,9 @@ instrJmp a c = return $ c { pc = a }
 
 -- 2nnn call nnn
 instrCall :: Address -> Chip8 -> Maybe Chip8
-instrCall a c = incpc <$> instrJmp a c
+instrCall a c = instrJmp a c'
+  where c'  = push (pc'+2) c
+        pc' = pc c
 
 -- 3xkk SE Vx, byte
 -- skip next instruction if Vx == kk
