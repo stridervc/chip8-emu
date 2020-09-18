@@ -14,8 +14,10 @@ module Chip8
   , getMemory
   , setMemory
   , getScreen
+  , offsetXY
   , xorPutScreen
   , xorPutScreenByte
+  , xorPutScreenBytes
   , willCollide
   , chip8tick
   ) where
@@ -40,7 +42,7 @@ data Chip8 = Chip8
   , dt          :: Byte         -- Delay timer register
   , st          :: Byte         -- Sound timer register
   , keys        :: [Bool]       -- 16 keyboard buttons, 0-F
-  , screensize  :: (Byte, Byte) -- width, height
+  , screensize  :: (Int, Int)   -- width, height
   , screen      :: [Bool]       -- 64x32 pixel monochrome screen
   , pc          :: Address      -- 16-bit program counter
   } deriving (Eq, Show)
@@ -117,12 +119,17 @@ setMemory addr bs c = c { memory = mem' }
 getScreen :: Byte -> Byte -> Chip8 -> Bool
 getScreen x y c = (screen c)!!offs
   where w     = fst $ screensize c
-        offs  = fromIntegral $ y*w+x
+        offs  = offsetXY x y c
+
+offsetXY :: Byte -> Byte -> Chip8 -> Int
+offsetXY x y c = fromIntegral $ y'*w+x'
+  where y'  = fromIntegral y
+        x'  = fromIntegral x
+        w   = fst $ screensize c
 
 xorPutScreen :: Byte -> Byte -> Bool -> Chip8 -> Chip8
 xorPutScreen x y v c = c { screen = scr'' }
-  where i     = fromIntegral $ y*w+x
-        w     = fst $ screensize c
+  where i     = offsetXY x y c
         scr   = screen c
         scr'  = drop (i+1) scr
         scr'' = take i scr ++ [v'] ++ scr'
@@ -134,13 +141,13 @@ xorPutScreen x y v c = c { screen = scr'' }
 xorPutScreenByte :: Byte -> Byte -> Byte -> Chip8 -> Chip8
 xorPutScreenByte x y b c = c'
   where bits      = map (testBit b) [7,6..0]
-        xs        = map (+x) [0..7]
+        xs        = map (+x) [0..]
         xvs       = zip xs bits
         f         = (\c (x,v) -> xorPutScreen x y v c)
         c'        = foldl f c xvs
 
 willCollide :: Byte -> Byte -> Byte -> Chip8 -> Bool
-willCollide x y b c = any id $ map (\(a,b) -> a == b) oldnewbits
+willCollide x y b c = any id $ map (\(a,b) -> a == True && b == True) oldnewbits
   where oldnewbits  = zip oldbits newbits
         oldbits     = map (\x -> getScreen x y c) xs
         xs          = map (+x) [0..7]
@@ -399,7 +406,7 @@ instrRND x v c = incpc <$> setVReg x vx' c
 xorPutScreenBytes :: Byte -> Byte -> [Byte] -> Chip8 -> (Chip8,Bool)
 xorPutScreenBytes x y bs c = (c', collision)
   where c'        = foldl f c ybs
-        ys        = map (+y) [0..7]
+        ys        = map (+y) [0..]
         ybs       = zip ys bs
         f         = (\c (y,b) -> xorPutScreenByte x y b c)
         collision = any id $ map (\(y,b) -> willCollide x y b c) ybs
